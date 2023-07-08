@@ -6,7 +6,7 @@ import { fetchSSE } from './utils'
 import { urlJoin } from 'url-join-ts'
 import { v4 as uuidv4 } from 'uuid'
 
-export type TranslateMode = 'translate' | 'polishing' | 'summarize' | 'analyze' | 'explain-code' | 'big-bang'
+export type TranslateMode = 'translate' | 'polishing' | 'summarize' | 'analyze' | 'explain-code' | 'big-bang' | 'chat'
 export type Provider = 'OpenAI' | 'ChatGPT' | 'Azure'
 export type APIModel =
     | 'gpt-3.5-turbo'
@@ -231,6 +231,11 @@ export async function translate(query: TranslateQuery) {
                 contentPrompt = `the sentence is: ${query.text}\n\nthe word is: ${query.selectedWord}`
             }
             break
+        case 'chat':
+            rolePrompt = ''
+            commandPrompt = ''
+            contentPrompt = `你是一个ai智能助手，要求：使用中文回复。用户问题:${contentPrompt || query.selectedWord}。`
+            break
         case 'polishing':
             rolePrompt =
                 'You are an expert translator, please revise the following sentences to make them more clear, concise, and coherent.'
@@ -328,7 +333,7 @@ export async function translate(query: TranslateQuery) {
         ]
         body['messages'] = messages
     }
-
+    console.log('请求messages')
     switch (settings.provider) {
         case 'OpenAI':
         case 'ChatGPT':
@@ -419,12 +424,25 @@ export async function translate(query: TranslateQuery) {
         }
     } else {
         const url = urlJoin(settings.apiURL, settings.apiURLPath)
+        console.log('请求url', url)
         await fetchSSE(url, {
             method: 'POST',
             headers,
             body: JSON.stringify(body),
             signal: query.signal,
-            onMessage: (msg) => {
+            onMessage: (msg, pureString, isDone) => {
+                if (pureString) {
+                    console.log(msg, 'msgmsg')
+                    if (quoteProcessor) {
+                        msg = quoteProcessor.processText(msg)
+                    }
+                    // console.log(msg, quoteProcessor, 'msgmsg')
+                    query.onMessage({ content: msg, role: '', isWordMode, isFullText: true })
+                    if (isDone) {
+                        query.onFinish('stop')
+                    }
+                    return
+                }
                 let resp
                 try {
                     resp = JSON.parse(msg)

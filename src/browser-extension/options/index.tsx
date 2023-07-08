@@ -12,6 +12,7 @@ const Options = () => {
 
 const root = createRoot(document.getElementById('root') as HTMLElement)
 
+// 点击选项会弹出来
 root.render(
     <React.StrictMode>
         <Options />

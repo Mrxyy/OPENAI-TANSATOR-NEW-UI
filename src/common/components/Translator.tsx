@@ -6,7 +6,7 @@ import { Provider as StyletronProvider } from 'styletron-react'
 import { BaseProvider, Theme } from 'baseui-sd'
 import { Textarea } from 'baseui-sd/textarea'
 import { createUseStyles } from 'react-jss'
-import { AiOutlineTranslation, AiOutlineFileSync } from 'react-icons/ai'
+import { AiOutlineTranslation, AiOutlineFileSync, AiFillRobot } from 'react-icons/ai'
 import { IoSettingsOutline, IoColorPaletteOutline } from 'react-icons/io5'
 import { TbArrowsExchange, TbCsv } from 'react-icons/tb'
 import { MdOutlineSummarize, MdOutlineAnalytics, MdCode, MdOutlineGrade, MdGrade } from 'react-icons/md'
@@ -369,6 +369,10 @@ const actionStrItems: Record<TranslateMode, IActionStrItem> = {
     'big-bang': {
         beforeStr: 'Writing...',
         afterStr: 'Written',
+    },
+    'chat': {
+        beforeStr: 'Thinking...',
+        afterStr: 'Thinking',
     },
 }
 
@@ -806,6 +810,7 @@ export function Translator(props: IPopupCardProps) {
                         })
                     },
                     onFinish: (reason) => {
+                        console.log(reason, 'message1')
                         afterTranslate(reason)
                         setTranslatedText((translatedText) => {
                             const result = translatedText
@@ -814,6 +819,7 @@ export function Translator(props: IPopupCardProps) {
                         })
                     },
                     onError: (error) => {
+                        console.log(error, 'message2')
                         setActionStr('Error')
                         setErrorMessage(error)
                     },
@@ -1157,7 +1163,13 @@ export function Translator(props: IPopupCardProps) {
                                             />
                                         </div>
                                     </div>
-                                    <div className={styles.popupCardHeaderButtonGroup}>
+                                    <div
+                                        className={styles.popupCardHeaderButtonGroup}
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: '25px 25px 25px',
+                                        }}
+                                    >
                                         <Tooltip content={t('Translate')} placement={isDesktopApp() ? 'bottom' : 'top'}>
                                             <Button
                                                 size='mini'
@@ -1165,6 +1177,15 @@ export function Translator(props: IPopupCardProps) {
                                                 onClick={() => setTranslateMode('translate')}
                                             >
                                                 <AiOutlineTranslation />
+                                            </Button>
+                                        </Tooltip>
+                                        <Tooltip content={t('chat')} placement={isDesktopApp() ? 'bottom' : 'top'}>
+                                            <Button
+                                                size='mini'
+                                                kind={translateMode === 'chat' ? 'primary' : 'secondary'}
+                                                onClick={() => setTranslateMode('chat')}
+                                            >
+                                                <AiFillRobot />
                                             </Button>
                                         </Tooltip>
                                         <Tooltip content={t('Polishing')} placement={isDesktopApp() ? 'bottom' : 'top'}>

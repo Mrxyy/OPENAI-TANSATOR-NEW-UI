@@ -205,7 +205,7 @@ export async function exportToCsv<T extends Record<string, string | number>>(fil
 }
 
 interface FetchSSEOptions extends RequestInit {
-    onMessage(data: string): void
+    onMessage(data: string, pureString?: boolean, isDone?: boolean): void
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError(error: any): void
     fetcher?: (input: string, options: RequestInit) => Promise<Response>
@@ -213,7 +213,8 @@ interface FetchSSEOptions extends RequestInit {
 
 export async function fetchSSE(input: string, options: FetchSSEOptions) {
     const { onMessage, onError, fetcher = getUniversalFetch(), ...fetchOptions } = options
-
+    const isOpenAi = input.indexOf(defaultAPIURL) !== -1
+    console.log(input, defaultAPIURL)
     const resp = await fetcher(input, fetchOptions)
     if (resp.status !== 200) {
         onError(await resp.json())
@@ -228,13 +229,24 @@ export async function fetchSSE(input: string, options: FetchSSEOptions) {
     const reader = resp.body.getReader()
     try {
         // eslint-disable-next-line no-constant-condition
+        let message = ''
         while (true) {
             const { done, value } = await reader.read()
             if (done) {
+                if (message) {
+                    onMessage(message, true, true)
+                    message = ''
+                }
                 break
             }
             const str = new TextDecoder().decode(value)
-            parser.feed(str)
+            if (isOpenAi) {
+                parser.feed(str)
+            } else {
+                message += str
+                console.log(message)
+                onMessage(message, true)
+            }
         }
     } finally {
         reader.releaseLock()

@@ -11,3 +11,10 @@ html, body {
         background: #1f1f1f;
     }
 }
+.popup .popupCard-0-2-1{
+    background: linear-gradient(to right, #d7dcff, #bed9f5, #d4f4f2, #e7f7f6) !important;
+}
+
+.popup .iconText-d2-0-2-34{
+    color: #333;
+}
